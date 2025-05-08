@@ -18,8 +18,11 @@ def send_combined_event(container_id, image_name, start_time, end_time):
     doc = {
         "containerId": container_id,
         "imageName": image_name,
-        "availableStartDate": datetime.fromtimestamp(start_time).strftime('%b %d, %Y @ %H:%M:%S.%f')[:-3],
-        "availableEndDate": datetime.fromtimestamp(end_time).strftime('%b %d, %Y @ %H:%M:%S.%f')[:-3] if end_time else "-"
+        "startDate": datetime.fromtimestamp(start_time).strftime('%b %d, %Y @ %H:%M:%S.%f')[:-3],
+        "endDate": datetime.fromtimestamp(end_time).strftime('%b %d, %Y @ %H:%M:%S.%f')[:-3] if end_time else "-",
+        "duration": (end_time - start_time) if end_time else None,
+        "startTimestamp": start_time,
+        "endTimestamp": end_time
     }
     try:
         es.index(index='container-availability', document=sanitize_keys(doc))
