@@ -26,8 +26,18 @@ def send_combined_event(container_id, image_name, start_time, end_time):
         "startTimestamp": start_time,
         "endTimestamp": end_time
     }
+    doc_disable_active = {
+        "_id": container_id,
+        "containerId": container_id,
+        "imageName": image_name,
+        "startDate": datetime.fromtimestamp(start_time).strftime('%b %d, %Y @ %H:%M:%S.%f')[:-3],
+        "startTimestamp": start_time,
+        "activeFor": time.time() - start_time,  # Duration since start in seconds
+        "status": "disabled"
+    }
     try:
         es.index(index='container-availability', document=sanitize_keys(doc))
+        es.index(index='active-containers', document=sanitize_keys(doc_disable_active))
         #print(sanitize_keys(doc))
     except Exception as e:
         print(f"Indexing error: {str(e)}")
@@ -46,11 +56,13 @@ def send_active_containers():
             # If there are start times in the deque, the container is active
             for start_time in start_times:
                 doc = {
+                    "_id": container_id,
                     "containerId": container_id,
                     "imageName": image_name,
                     "startDate": datetime.fromtimestamp(start_time).strftime('%b %d, %Y @ %H:%M:%S.%f')[:-3],
                     "startTimestamp": start_time,
-                    "activeFor": current_time - start_time  # Duration since start in seconds
+                    "activeFor": current_time - start_time,  # Duration since start in seconds
+                    "status": "active"
                 }
                 active_containers.append(doc)
 
