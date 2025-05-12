@@ -27,8 +27,8 @@ def send_combined_event(container_id, image_name, start_time, end_time):
         "endTimestamp": end_time
     }
     try:
-        #es.index(index='container-availability', document=sanitize_keys(doc))
-        print(sanitize_keys(doc))
+        es.index(index='container-availability', document=sanitize_keys(doc))
+        #print(sanitize_keys(doc))
     except Exception as e:
         print(f"Indexing error: {str(e)}")
 
@@ -57,8 +57,8 @@ def send_active_containers():
         # Send active containers to a separate index
         for doc in active_containers:
             try:
-                #es.index(index='active-containers', document=sanitize_keys(doc))
-                print(sanitize_keys(doc))
+                es.index(index='active-containers', document=sanitize_keys(doc))
+                #print(sanitize_keys(doc))
             except Exception as e:
                 print(f"Error indexing active container: {str(e)}")
 
