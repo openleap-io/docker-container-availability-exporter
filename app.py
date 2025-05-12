@@ -2,6 +2,8 @@ import docker
 from elasticsearch import Elasticsearch
 from collections import defaultdict, deque
 from datetime import datetime
+import threading
+import time
 
 es = Elasticsearch(hosts=['http://elk:9200'])
 client = docker.from_env()
@@ -25,9 +27,48 @@ def send_combined_event(container_id, image_name, start_time, end_time):
         "endTimestamp": end_time
     }
     try:
-        es.index(index='container-availability', document=sanitize_keys(doc))
+        #es.index(index='container-availability', document=sanitize_keys(doc))
+        print(sanitize_keys(doc))
     except Exception as e:
         print(f"Indexing error: {str(e)}")
+
+def send_active_containers():
+    """
+    Periodically sends information about active containers (started but not ended)
+    to a separate Elasticsearch index.
+    """
+    while True:
+        active_containers = []
+        current_time = time.time()
+
+        # Iterate through the start_cache to find active containers
+        for (container_id, image_name), start_times in start_cache.items():
+            # If there are start times in the deque, the container is active
+            for start_time in start_times:
+                doc = {
+                    "containerId": container_id,
+                    "imageName": image_name,
+                    "startDate": datetime.fromtimestamp(start_time).strftime('%b %d, %Y @ %H:%M:%S.%f')[:-3],
+                    "startTimestamp": start_time,
+                    "activeFor": current_time - start_time  # Duration since start in seconds
+                }
+                active_containers.append(doc)
+
+        # Send active containers to a separate index
+        for doc in active_containers:
+            try:
+                #es.index(index='active-containers', document=sanitize_keys(doc))
+                print(sanitize_keys(doc))
+            except Exception as e:
+                print(f"Error indexing active container: {str(e)}")
+
+        # Wait for 30 seconds before the next check
+        time.sleep(30)
+
+# Start the monitoring thread
+monitoring_thread = threading.Thread(target=send_active_containers, daemon=True)
+monitoring_thread.start()
+
 
 for event in client.events(decode=True):
     if event['Type'] == 'container' and event['status'] in ('start', 'die'):
