@@ -28,9 +28,9 @@ def die_event(container_id, image_name, start_time, end_time, status):
         "status": status
     }
     try:
-        #es.index(index='container-availability', document=sanitize_keys(doc))
-        #es.index(index='active-containers', id=container_id ,document=sanitize_keys(doc))
-        print(sanitize_keys(doc))
+        es.index(index='container-availability', document=sanitize_keys(doc))
+        es.index(index='active-containers', id=container_id ,document=sanitize_keys(doc))
+        #print(sanitize_keys(doc))
     except Exception as e:
         print(f"Indexing error: {str(e)}")
 
@@ -47,8 +47,8 @@ def start_event(container_id, image_name, start_time, end_time, status):
     }
 
     try:
-        #es.index(index='active-containers', id=container_id ,document=sanitize_keys(doc))
-        print(sanitize_keys(doc))
+        es.index(index='active-containers', id=container_id ,document=sanitize_keys(doc))
+        #print(sanitize_keys(doc))
     except Exception as e:
         print(f"Indexing error: {str(e)}")
 
