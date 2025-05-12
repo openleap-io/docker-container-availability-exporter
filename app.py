@@ -36,11 +36,9 @@ def send_combined_event(container_id, image_name, start_time, end_time):
         "status": "disabled"
     }
     try:
-        #es.index(index='container-availability', document=sanitize_keys(doc))
-        #es.index(index='active-containers', document=sanitize_keys(doc_disable_active))
-        print(sanitize_keys(doc))
-        print("---")
-        print(sanitize_keys(doc_disable_active))
+        es.index(index='container-availability', document=sanitize_keys(doc))
+        es.index(index='active-containers', document=sanitize_keys(doc_disable_active))
+        #print(sanitize_keys(doc))
     except Exception as e:
         print(f"Indexing error: {str(e)}")
 
